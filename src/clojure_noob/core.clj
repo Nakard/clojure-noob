@@ -5,6 +5,7 @@
   "I don't do a whole lot ... yet."
   [& args]
   (println "Hello, World!"))
+
 (defn my-first
   [[first-thing]] ; Notice that first-thing is within a vector
   first-thing)
@@ -51,11 +52,11 @@
 (def spider-parts [{:name "eye" :size 3 :count 8}
                    {:name "leg" :size 5 :count 16}])
 
-(defn spider-expander
-  "Expands spider body parts"
-  [final-body-parts part]
-  (into final-body-parts (body-repeater (:count part) part))
-  )
+(defn body-part-copy
+  "Creates new body part copy with specified index"
+  [part part-number]
+  {:name (str part-number "-" (:name part))
+   :size (:size part)})
 
 (defn body-repeater
   "Creates new set containing copied body parts n-times"
@@ -67,8 +68,49 @@
       (recur (inc iteration) (into result [(body-part-copy body-part iteration)]))))
 )
 
-(defn body-part-copy
-  "Creates new body part copy with specified index"
-  [part part-number]
-  {:name (str part-number "-" (:name part))
-   :size (:size part)})
+(defn spider-expander
+  "Expands spider body parts"
+  [final-body-parts part]
+  (into final-body-parts (body-repeater (:count part) part)))
+
+(defn hit
+  [asym-body-parts]
+  (let [sym-parts (better-symmetrize-body-parts asym-body-parts)
+        body-part-size-sum (reduce + (map :size sym-parts))
+        target (rand body-part-size-sum)]
+    (loop [[part & remaining] sym-parts
+           accumulated-size (:size part)]
+      (if (> accumulated-size target)
+        part
+        (recur remaining (+ accumulated-size (:size (first remaining))))))))
+
+(defn add100
+  [number]
+  (+ number 100))
+
+(defn dec-maker
+  "Creates a custom value decrementor"
+  [dec-value]
+  #(- % dec-value)
+)
+
+(defn mapset
+  [fun input]
+  (set (map fun input)))
+
+(def sum #(reduce + %))
+(def avg #(/ (sum %) (count %)))
+(defn stats
+  [numbers]
+  (map #(% numbers) [sum count avg]))
+
+(defn map-reduce
+  [fun input]
+  (reduce (fn [output f]
+            (conj output (fun f)))
+          []
+          input))
+
+(defn even-numbers
+  ([] (even-numbers 0))
+  ([n] (cons n (lazy-seq (even-numbers (+ n 2))))))
